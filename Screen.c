@@ -139,7 +139,7 @@ WORD instCopper(struct windowUser *wu)
         else
         {
             CINIT(ucl, 3);
-            CWAIT(ucl, 200, 0);
+            CWAIT(ucl, COPLINE, 0);
             CMOVE(ucl, custom.intreq, INTF_SETCLR | INTF_COPER);
             CEND(ucl);
 

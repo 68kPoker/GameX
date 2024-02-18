@@ -4,6 +4,8 @@
 
 #include <exec/types.h>
 
+#define COPLINE 200 /* Copper interrupt line */
+
 struct windowUser
 {
     struct Window *w;

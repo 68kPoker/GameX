@@ -17,8 +17,11 @@
 
 #define AB_OR_NAC 0xca
 
-/* Add __far */
-extern struct Custom custom;
+#ifndef AMIGA
+#define __far
+#endif
+
+__far extern struct Custom custom;
 
 struct GelsInfo *initGels(struct RastPort *rp)
 {
@@ -289,4 +292,33 @@ void drawBob(struct RastPort *rp, struct VSprite *vs, struct Bob *bob)
     }
 
     DisownBlitter();
+}
+
+UWORD *createImageData(struct BitMap *bm, WORD width, WORD height, WORD count)
+{
+    UWORD *imageData, *curData;
+    UBYTE depth = bm->Depth, p;
+    WORD i;
+    LONG imagePlaneSize = width * height, imageSize = imagePlaneSize * depth;
+    struct BitMap aux;
+    WORD x, y, imagesPerRow = GetBitMapAttr(bm, BMA_WIDTH) / (width << 4);
+
+    if (imageData = AllocVec(imageSize * sizeof(UWORD) * count, MEMF_CHIP))
+    {
+        InitBitMap(&aux, depth, width << 4, height);
+        curData = imageData;
+        for (i = 0; i < count; i++)
+        {
+            for (p = 0; p < depth; p++)
+            {
+                aux.Planes[p] = curData;
+                curData += imagePlaneSize;
+            }
+            x = (i % imagesPerRow) * (width << 4);
+            y = (i / imagesPerRow) * height;
+            BltBitMap(bm, x, y, &aux, 0, 0, width << 4, height, 0xc0, 0xff, NULL);
+        }
+        return(imageData);
+    }
+    return(NULL);
 }
