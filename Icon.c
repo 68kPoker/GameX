@@ -3,6 +3,8 @@
 
 /* Fast aligned blocks drawing */
 
+#include <assert.h>
+
 #include <graphics/rpattr.h>
 #include <clib/graphics_protos.h>
 

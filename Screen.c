@@ -49,18 +49,19 @@ __saveds __asm __regargs static LONG myCopper(register __a1 struct copperdata *c
     return(0);
 }
 
-struct Window *openScreen(struct windowUser *wu)
+struct Window *openScreen(struct windowUser *wu, UBYTE depth)
 {
     struct Screen *s;
 
     if (!(s = OpenScreenTags(NULL,
-        SA_LikeWorkbench, TRUE,
+        SA_DisplayID, DEFAULT_MONITOR_ID | LORES_KEY,
         SA_Title, "GameX (c) 2024 Robert Szacki",
         SA_ShowTitle, FALSE,
         SA_Quiet, TRUE,
         SA_Exclusive, TRUE,
         SA_BackFill, LAYERS_NOBACKFILL,
-        SA_Depth, 3,
+        SA_Depth, depth,
+        SA_Interleaved, TRUE,
         TAG_DONE)))
         printf("Couldn't open screen.\n");
     else

@@ -20,4 +20,4 @@ void storeBack(struct RastPort *rp, struct VSprite *vs, struct Bob *bob);
 void restoreBack(struct RastPort *rp, struct VSprite *vs, struct Bob *bob);
 void drawBob(struct RastPort *rp, struct VSprite *vs, struct Bob *bob);
 
-UWORD *createImageData(struct BitMap *bm, WORD width, WORD height, WORD count);
+UWORD *createImageData(struct BitMap *bm, WORD wordWidth, WORD height, WORD count);

@@ -19,7 +19,7 @@ struct rpUser
     void (*draw)(struct rpUser *rpu);
 };
 
-struct Window *openScreen(struct windowUser *wu);
+struct Window *openScreen(struct windowUser *wu, UBYTE depth);
 void closeScreen(struct windowUser *wu);
 WORD instCopper(struct windowUser *wu);
 void remCopper(void);

@@ -21,6 +21,8 @@
 #define __far
 #endif
 
+#define BLIT 1
+
 __far extern struct Custom custom;
 
 struct GelsInfo *initGels(struct RastPort *rp)
@@ -89,15 +91,28 @@ struct Bob *newBob(WORD x, WORD y, WORD width, WORD height, UBYTE depth, UBYTE p
             bob->BobVSprite = vs;
             vs->VSBob = bob;
             bob->Flags = bobFlags;
-            if (bobFlags & SAVEBACK)
+            if (vsFlags & SAVEBACK)
             {
                 bob->SaveBuffer = AllocVec((vs->Width + 1) * sizeof(UWORD) * vs->Height * rasDepth, MEMF_CHIP);
             }
-            if (bobFlags & OVERLAY)
+            if (vsFlags & OVERLAY)
             {
-                bob->ImageShadow = AllocVec(vs->Width * sizeof(UWORD) * vs->Height, MEMF_CHIP);
+                vs->CollMask = bob->ImageShadow = AllocVec(vs->Width * sizeof(UWORD) * vs->Height, MEMF_CHIP);
             }
-            return(bob);                        
+            
+            if (vs->BorderLine = AllocVec(vs->Width * sizeof(UWORD), MEMF_CHIP))
+            {
+                return(bob);
+            }
+            
+            if (bob->ImageShadow)
+            {
+                FreeVec(bob->ImageShadow);
+            }    
+            if (bob->SaveBuffer)
+            {
+                FreeVec(bob->SaveBuffer);
+            }    
         }
         disposeVSprite(vs);
     }
@@ -107,6 +122,11 @@ struct Bob *newBob(WORD x, WORD y, WORD width, WORD height, UBYTE depth, UBYTE p
 void disposeBob(struct Bob *bob)
 {
     struct VSprite *vs = bob->BobVSprite;
+    
+    if (vs->BorderLine)
+    {   
+        FreeVec(vs->BorderLine);
+    }    
 
     if (bob->ImageShadow)
     {
@@ -133,7 +153,11 @@ void drawGList(struct RastPort *rp)
 
         if ((vs->Flags & (SAVEBACK | BACKSAVED)) == (SAVEBACK | BACKSAVED))
         {
+#if BLIT        
             restoreBack(rp, vs, bob);
+#else
+            printf("Restoring.\n");
+#endif                        
         }
     }
 
@@ -144,7 +168,11 @@ void drawGList(struct RastPort *rp)
 
         if (vs->Flags & SAVEBACK)
         {
+#if BLIT
             storeBack(rp, vs, bob);
+#else
+            printf("Storing.\n");
+#endif                        
             vs->Flags |= BACKSAVED;
         }
     }
@@ -153,8 +181,12 @@ void drawGList(struct RastPort *rp)
     {
         struct Bob *bob = vs->VSBob;
         assert(bob);
-        
+      
+#if BLIT          
         drawBob(rp, vs, bob);
+#else
+        printf("Drawing (%d, %d).\n", vs->Width, vs->Height);
+#endif                
     }
 }
 
@@ -301,7 +333,7 @@ UWORD *createImageData(struct BitMap *bm, WORD width, WORD height, WORD count)
     WORD i;
     LONG imagePlaneSize = width * height, imageSize = imagePlaneSize * depth;
     struct BitMap aux;
-    WORD x, y, imagesPerRow = GetBitMapAttr(bm, BMA_WIDTH) / (width << 4);
+    WORD x, y, imagesPerRow = (WORD)GetBitMapAttr(bm, BMA_WIDTH) / (width << 4);
 
     if (imageData = AllocVec(imageSize * sizeof(UWORD) * count, MEMF_CHIP))
     {
@@ -311,7 +343,7 @@ UWORD *createImageData(struct BitMap *bm, WORD width, WORD height, WORD count)
         {
             for (p = 0; p < depth; p++)
             {
-                aux.Planes[p] = curData;
+                aux.Planes[p] = (PLANEPTR)curData;
                 curData += imagePlaneSize;
             }
             x = (i % imagesPerRow) * (width << 4);
